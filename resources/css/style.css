@@ -47,7 +47,6 @@ a:active { color: #EC173A; }
 
 
 body {
-	font-size: 62.5%;
 	background-color: #D0E4ED
 }
 
@@ -204,5 +203,19 @@ table {
 	position: absolute;
 	background-color: blue;
 	z-index: 4;
+}
+
+/*
+
+.dirt {
+	background-color: red
+}
+
+.grass {
+	background-color: green
+}
+
+.brick {
+	background-color: grey
 }
 
