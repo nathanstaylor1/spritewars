@@ -213,26 +213,9 @@ Level.prototype.drawHUD = function(){
                            "<div class = 'weapons'><img class = 'left'><img class = 'selected'><img class = 'right'></div>"+
                            "<div class = 'ammo'><img class = 'left'><img class = 'right'></div>"
 
-    this.$HUD.append("<div id = 'P1'>" + HUDforEachPlayer + "</div><div id = 'P2'>" + HUDforEachPlayer + "</div>")
-
-    this.P1sprites = {
-        faceIcons: new Spritesheet("resources/images/faceIcons.png", 24, 24, "#P1 .faceIcon", faceIconSize, faceIconSize),
-        weaponIcons: new Spritesheet("resources/images/weaponIcons.png", 16, 16, "#P1 .weapons .selected", weaponIconSize, weaponIconSize),
-        numbersLeft: new Spritesheet("resources/images/numbersLeft.png", 6, 11, "#P1  .ammo .left", ammoSize/2, ammoSize),
-        numbersRight: new Spritesheet("resources/images/numbersRight.png", 6, 11, "#P1  .ammo .right", ammoSize/2, ammoSize)
-    }
-
-    this.P2sprites = {
-        faceIcons: new Spritesheet("resources/images/faceIcons.png", 24, 2, "#P2 .faceIcon", faceIconSize, faceIconSize),
-        weaponIcons: new Spritesheet("resources/images/weaponIcons.png", 16, 16, "#P2 .weapons .selected", weaponIconSize, weaponIconSize),
-        numbersLeft: new Spritesheet("resources/images/numbersLeft.png", 5, 11, "#P2  .ammo .left", ammoSize/2, ammoSize),
-        numbersRight: new Spritesheet("resources/images/numbersRight.png", 6, 11, "#P2  .ammo .right", ammoSize/2, ammoSize)
-    }
-
     this.HUDspriteIndex = {
-        faceIcons: {"nathan":0, "yuriko":1, "rina":2, "length": 3},
-        weaponIcons: {"knife":0, "bomb":1, "star":2, "fist":3, "fork":4, "fireball": 5, "boomerang":6, "mine":7, "bowl":1
-        , "length": 8}
+        faceIcons: {"nathan":0, "yuriko":1, "rina":2},
+        weaponIcons: {"knife":0, "bowl":1, "star":2, "fist":3, "fork":4, "fireball": 5, "boomerang":6, "mine":7}
     }
 
     var shift = 0;
@@ -242,11 +225,19 @@ Level.prototype.drawHUD = function(){
 
         var player = players[p]
 
+		this.$HUD.append("<div id = '" + player + "'>" + HUDforEachPlayer + "</div>")
+
+        this[player + "sprites"] = {
+        faceIcons: new Spritesheet("resources/images/faceIcons.png", 20, 20, "#" + player + " .faceIcon", faceIconSize, faceIconSize),
+        weaponIcons: new Spritesheet("resources/images/weaponIcons.png", 16, 16, "#" + player + " .weapons .selected", weaponIconSize, weaponIconSize),
+        numbersLeft: new Spritesheet("resources/images/numbersLeft.png", 6, 11, "#" + player + "  .ammo .left", ammoSize/2, ammoSize),
+        numbersRight: new Spritesheet("resources/images/numbersRight.png", 6, 11, "#" + player + "  .ammo .right", ammoSize/2, ammoSize)
+   		}
+
         shift = this.HUDspriteIndex.faceIcons[this[player].name]*faceIconSize
         this[player +"sprites"].faceIcons.clipTo(0, shift + faceIconSize, faceIconSize, shift)
 
     }
-
 
 }
 
@@ -317,25 +308,20 @@ Level.prototype.drawMap = function(map){
             tileType = new mapChars[map[row][col]]
             $(".row" + row).append("<td class = '" + tileType.classDisplay + "'></td>")    
 
-
-            var mapSpriteLeft = new Spritesheet("resources/images/mapTerrain.png", 25, 25, ".row" + row + " td:last-child", (Xscale + 2)/2, (Yscale + 1 ))
-            var mapSpriteRight = new Spritesheet("resources/images/mapTerrain.png", 25, 25, ".row" + row + " td:last-child", (Xscale + 2)/2, (Yscale + 1 ))
-
             var spriteCombo = tileType.spriteIndex[map[row][col]]
 
-            var shiftLeft = mapSpritesIndex[spriteCombo[0]]* (Xscale + 2)/2 
-            var shiftRight = mapSpritesIndex[spriteCombo[1]]* (Xscale + 2)/2
+            for (var i = 0; i < 2; i++){
 
-            mapSpriteLeft.clipTo(0,shiftLeft + Xscale/2, Yscale, shiftLeft)
-            mapSpriteLeft.$img.css("left",col * Xscale * xfudge - shiftLeft)
+	            var mapSprite = new Spritesheet("resources/images/mapTerrain.png", 25, 25, ".row" + row + " td:last-child", (Xscale + 2)/2, (Yscale + 1 ))
+	           
+	            var shift = mapSpritesIndex[spriteCombo[i]]* (Xscale + 2)/2 
 
-            mapSpriteRight.clipTo(0,shiftRight + Xscale/2, Yscale, shiftRight)
-            mapSpriteRight.$img.css("left",col * Xscale * xfudge - shiftRight + Xscale/2)
+	            mapSprite.clipTo(0, shift + Xscale/2, Yscale, shift)
+	            mapSprite.$img.css("left", col * Xscale * xfudge - shift + Xscale/2 * i)
 
-            if (tileType.classDisplay == "blank"){ 
-                mapSpriteRight.$img.css("opacity",0)
-                mapSpriteLeft.$img.css("opacity",0)
-            }
+	            if (tileType.classDisplay == "blank")  mapSprite.$img.css("opacity",0)
+
+        	}
 
             if (drawGrid) $gridRow.append("<td></td>")
             this.grid[row].push(tileType)
@@ -402,15 +388,11 @@ Item.prototype.removeMe = function(level){
 
 }
 
-Item.prototype.draw = function(){
+Item.prototype.draw = function(level){
     this.$DOM.css("left",this.pos.x * xfudge)
     this.$DOM.css("top",this.pos.y)
 
-    if (renderHitboxes){
-
-        this.$hitBox.css("left",this.pos.x * xfudge + this.hitBox.TL.x + "px")
-        this.$hitBox.css("top",this.pos.y + this.hitBox.TL.y  + "px")
-    }
+	level.renderHitboxOf(this)
 }
     
 function Crate(pos, item){
@@ -448,15 +430,11 @@ Crate.prototype.act = function(step, level){
 
 }
 
-Crate.prototype.draw = function(){
+Crate.prototype.draw = function(level){
     this.$DOM.css("left",this.pos.x * xfudge)
     this.$DOM.css("top",this.pos.y)
 
-    if (renderHitboxes){
-
-        this.$hitBox.css("left",this.pos.x * xfudge + this.hitBox.TL.x + "px")
-        this.$hitBox.css("top",this.pos.y + this.hitBox.TL.y  + "px")
-    }
+	level.renderHitboxOf(this)
 }
 
 Crate.prototype.breakMe = function(level){
@@ -467,26 +445,28 @@ Crate.prototype.breakMe = function(level){
         if (renderHitboxes && removedCrate) removedCrate[0].$hitBox.remove()
     }, this)
 
-
-
-
 }
-
 
 Level.prototype.generateCrates = function(step){
 
-this.nextCrateIn -= step;
+	this.nextCrateIn -= step;
 
-if (this.nextCrateIn < 0){
-    this.nextCrateIn = crateGenerationRate;
+	if (this.nextCrateIn < 0){
+	    this.nextCrateIn = crateGenerationRate;
 
-    var itemIn = items[Math.floor(Math.random() * items.length)]
-    var crate = new Crate(new Vector(Math.floor(Math.random()*15*Xscale),10),new Item(itemIn[0], itemIn[1]) )
-    this.actors.push(crate)
+	    var itemIn = items[Math.floor(Math.random() * items.length)]
+	    var crate = new Crate(new Vector(Math.floor(Math.random()*15*Xscale),10),new Item(itemIn[0], itemIn[1]) )
+	    this.actors.push(crate)
+	}
+
 }
 
+Level.prototype.renderHitboxOf = function(actor){
+	if (renderHitboxes){
+        actor.$hitBox.css("left",this.pos.x * xfudge + this.hitBox.TL.x + "px")
+        actor.$hitBox.css("top",this.pos.y + this.hitBox.TL.y  + "px")
+    }
 }
-
 
 Level.prototype.obstacleAt = function(pos, hitBox){
 
@@ -545,7 +525,7 @@ Level.prototype.animate = function(step){
         }
         this.actors.forEach(function(actor){
             actor.act(thisStep, this);
-            actor.draw()
+            actor.draw(this)
         }, this)
 
         this.updateHUD()
@@ -579,32 +559,24 @@ function Rectangle(TL,BR){
 
 function Spritesheet(dir, frameWidth, frameHeight, wrap, displayWidth, displayHeight ){
 
-    this.frameWidth = frameWidth;
-    this.frameHeight = frameHeight;
-
     this.image = new Image()
 
     this.$DOM = $(wrap)
+    this.$DOM.append(this.image)
+	this.$img = $(wrap + " img:last-child")
 
     var scope = this;
 
     this.image.onload = function(event){
 
-        this.width = event.target.naturalWidth 
-        this.height = event.target.naturalHeight
-       
+		this.totalFrames = Math.floor(this.naturalWidth / frameWidth)   
+
+		scope.$img.css("width", displayWidth * this.totalFrames)
+		scope.$img.css("height", displayHeight)
+
     }
 
     this.image.src = dir;
-
-	this.$DOM.append(this.image)
-	this.$img = $(wrap + " img:last-child")
-
-	this.totalFrames = Math.floor(this.image.naturalWidth / frameWidth)
-
-    this.$img.css("width", displayWidth * this.totalFrames)
-	this.$img.css("height", displayHeight)
-
 
 }
 
@@ -614,9 +586,6 @@ Spritesheet.prototype.putInto = function(selector){
     this.$img = $(selector + " img:last-child")
 
 }
-
-
-
 
 Spritesheet.prototype.clipTo = function(top,right,bottom,left){
 
@@ -693,7 +662,6 @@ function Character(name, spritesheetSRC, keys, pos, size, level){
     var displayWidth = 
 
     this.spritesheet = new Spritesheet(spritesheetSRC, 24, 24, "#actors div:last-child", size.x, size.y)
-    this.draw()
 
     this.spritesheet.$img.css("clip", "rect(0px, " + size.x + "px, " + size.y + "px, 0px)")
 
@@ -706,24 +674,20 @@ function Character(name, spritesheetSRC, keys, pos, size, level){
 
 }
 
-Character.prototype.draw = function(){
+Character.prototype.draw = function(level){
 
+	level.renderHitboxOf(this)
 
     this.$DOM.css("left", this.pos.x * xfudge + this.spritesheetBuffer.x + "px")
     this.$DOM.css("top", this.pos.y + this.spritesheetBuffer.y  + "px")
 
-    if (renderHitboxes){
-        this.$hitBox.css("left",this.pos.x * xfudge + this.hitBox.TL.x + "px")
-        this.$hitBox.css("top",this.pos.y + this.hitBox.TL.y  + "px")
-    }
+
 }
 
 Character.prototype.moveX = function(step, level){
 
     this.speed.x = this.knockbackForce;
     this.knockbackForce /=1.2;
-
-
 
     var groundAttack = !this.airborne && (this.attacking || this.keys.attack[1])
 
@@ -778,7 +742,6 @@ Character.prototype.moveY = function(step, level){
 }
 
 Character.prototype.attack = function(step, level){
-
 
     if (this.keys.weaponLeft[1] && !this.weaponChanged){
 
@@ -835,14 +798,12 @@ Character.prototype.pickUp = function(item){
                 taken = true;
                 this.weapons[w][1] += item.amount
             }
-
         }
         
         if (!taken) {
             this.weapons.push([item.content, item.amount])
             this.currentWeaponIndex = this.weapons.length - 1
-        }
-    
+        } 
     }
 }
 
@@ -971,7 +932,6 @@ var items = [
     //["bowl", 20]
 ]
 
-
 //    -------------------------------------  ATTACKS   ------------------------------------------- //
 
 function Attack(weapon, character){
@@ -1001,7 +961,6 @@ function Attack(weapon, character){
         }
     }
 
-
     this.sprites = weapon.sprites;
 
     if (renderHitboxes){
@@ -1022,7 +981,7 @@ function Attack(weapon, character){
 
         this.spritesheet.$img.css("clip", "rect(0px, 0px, 0px, 0px)")
 
-        this.frameSize = this.spritesheet.image.height
+        this.frameSize = 50
         this.frame = 0;
         this.spritesheetBuffer = new Vector(0,0)
 
@@ -1110,7 +1069,6 @@ Attack.prototype.checkForHits = function(step,level){
         this.finished = true;
         otherActor.finished = true;
     }
-
 }
 
 Attack.prototype.checkProgress = function(step, level){
@@ -1136,16 +1094,9 @@ Attack.prototype.removeMe = function(level){
     }, this)
 }
 
-Attack.prototype.draw = function(step, leveld){
+Attack.prototype.draw = function(level){
 
-    if (renderHitboxes){
-
-        this.$hitBox.css("left",this.pos.x * xfudge + this.hitBox.TL.x + "px")
-        this.$hitBox.css("top",this.pos.y + this.hitBox.TL.y  + "px")
-
-    }
-
-    //find sprites
+	level.renderHitboxOf(this)
 
     if (this.sprites){
 
@@ -1165,7 +1116,6 @@ Attack.prototype.draw = function(step, leveld){
         this.spritesheet.$img.css("top",this.pos.y + this.hitBox.TL.y  + this.spritesheetBuffer.y + "px")
         this.spritesheet.$img.css("clip", "rect(0px, " + right + "px, " + this.frameSize + "px, " + left + "px)")
         this.frame++
-
     }
 
 }
@@ -1174,7 +1124,6 @@ Attack.prototype.act = function(step, level){
 
     this.updatePosition(step, level)
     this.checkForHits(step,level)
-    this.draw()
     this.checkProgress(step,level)
 }
 
@@ -1208,14 +1157,13 @@ function runGame(map, P1, P2) {
 	level.init(map)
 		
 	runAnimation(function(step) {
-	  level.animate(step);
+		level.animate(step);
+
 	});
 
 }
 
-
 // -------------------------------- MANAGE KEYS ----------------------------- //
-
 
 var P1keys = {
     left: [65, false],
@@ -1235,9 +1183,7 @@ var P2keys = {
     weaponRight: [17, false]
 }
 
-
 var keyRing = [P1keys, P2keys]
-
 
 $(document).keydown(function(key){
     key.preventDefault();
@@ -1254,8 +1200,4 @@ $(document).keyup(function(key){
         }
     });
 })
-
-// -------------------------------- START GAME ----------------------------- //
-
-
 
